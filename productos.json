@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "nombre": "Zapatillas Running",
+    "desc": "Zapatillas deportivas con amortiguacion",
+    "precio": 45000,
+    "imagen": "zapatillas.jpg",
+    "stock": 12,
+    "disponible": true
+  },
+  {
+    "id": 2,
+    "nombre": "Remera DryFit",
+    "desc": "Remera deportiva transpirable",
+    "precio": 12000,
+    "imagen": "remera.jpg",
+    "stock": 25,
+    "disponible": true
+  },
+  {
+    "id": 3,
+    "nombre": "Botella de Agua",
+    "desc": "Botella plastica reutilizable 1L",
+    "precio": 3000,
+    "imagen": "botella.jpg",
+    "stock": 0,
+    "disponible": false
+  }
+]

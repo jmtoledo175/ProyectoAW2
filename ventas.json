@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "id_usuario": 1,
+    "fecha": "2025-09-05",
+    "total": 57000,
+    "direccion": "Cordoba Capital, Av Colon 1234",
+    "productos": [
+      { "id": 1, "cantidad": 1 },
+      { "id": 2, "cantidad": 1 }
+    ],
+    "entregado": true
+  },
+  {
+    "id": 2,
+    "id_usuario": 2,
+    "fecha": "2025-09-04",
+    "total": 9000,
+    "direccion": "Villa Allende, Ruta 9 km 20",
+    "productos": [{ "id": 3, "cantidad": 3 }],
+    "entregado": false
+  }
+]
