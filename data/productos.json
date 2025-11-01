@@ -3,9 +3,9 @@
     "id": 1,
     "nombre": "Zapatillas Running",
     "desc": "Zapatillas deportivas con amortiguacion",
-    "precio": 45000,
+    "precio": 11000,
     "imagen": "zapatillas.jpg",
-    "stock": 12,
+    "stock": 8,
     "disponible": true
   },
   {
@@ -25,5 +25,23 @@
     "imagen": "botella.jpg",
     "stock": 0,
     "disponible": false
+  },
+  {
+    "id": 4,
+    "nombre": "Short Deportivo",
+    "desc": "Short liviano de secado rápido",
+    "precio": 10000,
+    "imagen": "short.jpg",
+    "stock": 10,
+    "disponible": true
+  },
+  {
+    "id": 5,
+    "nombre": "Remera Running",
+    "desc": "Tejido liviano, ideal para entrenar",
+    "precio": 9500,
+    "imagen": "remera.jpg",
+    "stock": 20,
+    "disponible": true
   }
 ]

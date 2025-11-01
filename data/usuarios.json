@@ -22,5 +22,13 @@
     "email": "ana.g@ejemplo.com",
     "contraseña": "ana_pass",
     "activo": false
+  },
+  {
+      "id": 4,
+  "nombre": "Sofi",
+  "apellido": "Fernandez",
+  "email": "sofi.f@ejemplo.com",
+  "contraseña": "sofi123",
+  "activo": true
   }
 ]
