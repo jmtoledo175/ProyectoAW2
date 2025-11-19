@@ -29,6 +29,29 @@ await escribirArchivo(rutaUsuarios, usuarios);
 res.status(201).json("Usuario agregado");
 });
 
+router.post("/login", async (req, res) => {
+  const { email, contraseña } = req.body;
+
+  if (!email || !contraseña) {
+    return res.status(400).json({ message: "Faltan datos" });
+  }
+
+  const usuarios = await leerArchivo(rutaUsuarios);
+
+  const usuarioEncontrado = usuarios.find(
+    (u) => u.email === email && u.contraseña === contraseña
+  );
+
+  if (!usuarioEncontrado) {
+    return res.status(401).json({ message: "Credenciales incorrectas" });
+  }
+
+  res.json({
+    message: "Login exitoso",
+    usuario: usuarioEncontrado,
+  });
+});
+
 
 router.put("/:id", async (req, res) => {
 const usuarios = await leerArchivo(rutaUsuarios);
