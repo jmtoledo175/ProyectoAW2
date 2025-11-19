@@ -35,6 +35,32 @@ const resultado = ventas.filter(v => v.id_usuario == req.body.id_usuario);
 res.json(resultado);
 });
 
+router.post("/", async (req, res) => {
+  try {
+    const ventas = await leerArchivo(ruta);
+
+  
+    const nuevaVenta = {
+      id: getNextId(ventas),
+      ...req.body,
+      fecha: new Date().toISOString()
+    };
+
+    ventas.push(nuevaVenta);
+    await escribirArchivo(ruta, ventas);
+
+    res.status(201).json({
+      message: "Venta registrada",
+      venta: nuevaVenta
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json("Error al registrar la venta");
+  }
+});
+
+
 
 router.put("/:id", async (req, res) => {
 const ventas = await leerArchivo(ruta);

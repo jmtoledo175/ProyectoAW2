@@ -2,65 +2,83 @@ import { getCart, saveCart } from "../utils/cartStorage.js";
 import { getSession } from "../utils/sessionStorage.controller.js";
 
 const tbody = document.getElementById("tbodyCarrito");
-const txtTotal = document.getElementById("txtTotal");
-const carritoVacio = document.getElementById("carritoVacio");
 const carritoLleno = document.getElementById("carritoLleno");
+const txtTotal = document.getElementById("txtTotal");
 const btnComprar = document.getElementById("btnComprar");
 
-let carrito = getCart();
-
 const renderCarrito = () => {
-  if (!carrito.length) {
-    carritoVacio.classList.remove("hidden");
+  const carrito = getCart();
+
+  if (!carrito || carrito.length === 0) {
     carritoLleno.classList.add("hidden");
     return;
   }
 
-  carritoVacio.classList.add("hidden");
   carritoLleno.classList.remove("hidden");
-
   tbody.innerHTML = "";
+
   let total = 0;
 
-  carrito.forEach((item, index) => {
-    const subtotal = item.precio * item.cantidad;
-    total += subtotal;
-
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td class="p-3">${item.nombre}</td>
-      <td class="p-3">${item.cantidad}</td>
-      <td class="p-3">$${item.precio}</td>
-      <td class="p-3">$${subtotal}</td>
-      <td class="p-3">
-        <button data-index="${index}" class="bg-red-500 text-white px-2 py-1 rounded">
-          X
-        </button>
-      </td>
+  carrito.forEach((item) => {
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td class="py-3 px-4">${item.nombre}</td>
+      <td class="py-3 px-4">${item.cantidad}</td>
+      <td class="py-3 px-4">$${item.precio}</td>
+      <td class="py-3 px-4 font-semibold">$${item.precio * item.cantidad}</td>
     `;
-
-    tbody.appendChild(tr);
+    total += item.precio * item.cantidad;
+    tbody.appendChild(fila);
   });
 
   txtTotal.textContent = total;
-
-  document.querySelectorAll("button[data-index]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      carrito.splice(btn.dataset.index, 1);
-      saveCart(carrito);
-      renderCarrito();
-    });
-  });
 };
 
 
-btnComprar.addEventListener("click", () => {
-  const user = getSession();
-  if (!user) {
+btnComprar.addEventListener("click", async () => {
+  const carrito = getCart();
+  const usuario = getSession();
+
+
+  if (!usuario) {
     sessionStorage.setItem("next", "/pages/carrito.html");
     window.location.href = "/pages/login.html";
+    return;
+  }
+
+
+  const body = {
+    id_usuario: usuario.id,
+    productos: carrito.map((p) => ({
+      id_producto: p.id,
+      cantidad: p.cantidad,
+      precio: p.precio
+    }))
+  };
+
+  try {
+    const response = await fetch("http://localhost:3000/api/ventas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      alert("Error al procesar la compra");
+      return;
+    }
+
+    alert("Compra realizada con éxito");
+
+    saveCart([]);
+
+    window.location.href = "/pages/home.html";
+
+  } catch (error) {
+    console.error(error);
+    alert("Error al realizar la compra");
   }
 });
+
 
 renderCarrito();
