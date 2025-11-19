@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const usuario = await auth(email, contraseña);
       addSession(usuario);
-      window.location.href = "/pages/index.html";
+      window.location.href = "/pages/home.html";
 
     } catch (error) {
       showAlert("Usuario o contraseña incorrectos");

@@ -8,7 +8,7 @@ app.use(express.json());
 
 const PORT = 3000;
 
-app.use(express.static("./public"))
+app.use(express.static("public"));
 
 app.use("/api/productos", productosRouter);
 app.use("/api/usuarios", usuariosRouter);

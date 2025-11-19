@@ -5,3 +5,7 @@ export const addSession = (usuario) => {
 export const getSession = () => {
   return JSON.parse(sessionStorage.getItem("usuario"));
 };
+
+export const clearSession = () => {
+  sessionStorage.removeItem("usuario");
+};
