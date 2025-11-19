@@ -109,3 +109,7 @@ localStorage / sessionStorage
 JSON como base de datos
 
 Arquitectura monorepo
+
+## Usuario prueba
+"email": "juli.toledo@ejemplo.com",
+"contraseña": "1234",

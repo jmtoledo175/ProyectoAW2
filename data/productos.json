@@ -6,7 +6,8 @@
     "precio": 11000,
     "imagen": "zapatillas.jpg",
     "stock": 8,
-    "disponible": true
+    "disponible": true,
+    "categoria": "Zapatillas"
   },
   {
     "id": 2,
@@ -15,7 +16,8 @@
     "precio": 12000,
     "imagen": "remera.jpg",
     "stock": 25,
-    "disponible": true
+    "disponible": true,
+    "categoria": "Indumentaria"
   },
   {
     "id": 3,
@@ -24,7 +26,8 @@
     "precio": 3000,
     "imagen": "botella.jpg",
     "stock": 0,
-    "disponible": false
+    "disponible": false,
+    "categoria": "Accesorios"
   },
   {
     "id": 4,
@@ -33,7 +36,8 @@
     "precio": 10000,
     "imagen": "short.jpg",
     "stock": 10,
-    "disponible": true
+    "disponible": true,
+    "categoria": "Indumentaria"
   },
   {
     "id": 5,
@@ -42,6 +46,7 @@
     "precio": 9500,
     "imagen": "remera.jpg",
     "stock": 20,
-    "disponible": true
+    "disponible": true,
+    "categoria": "Indumentaria"
   }
 ]
