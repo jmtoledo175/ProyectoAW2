@@ -1,39 +1,60 @@
 import { addSession } from "../utils/sessionStorage.controller.js";
+import { alert } from "../components/alerts.js"; 
 
-const auth = async (email, contraseña) => {
-  const response = await fetch("http://localhost:3000/api/usuarios/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, contraseña }),
+document.addEventListener("DOMContentLoaded", () => {
+
+
+  document.getElementById("alertContainer").innerHTML = alert();
+
+ 
+  const btnClose = document.getElementById("btnCloseAlert");
+  btnClose.addEventListener("click", () => {
+    document.getElementById("alert").classList.add("hidden");
   });
 
-  if (!response.ok) {
-    throw new Error("Credenciales incorrectas");
-  }
+  const showAlert = (msg) => {
+    const alertDiv = document.getElementById("alert");
+    const alertText = document.getElementById("txtAlert");
 
-  const data = await response.json();
-  return data.usuario;
-};
+    alertText.textContent = msg;
+    alertDiv.classList.remove("hidden");
+  };
 
-document.getElementById("btnLogin").addEventListener("click", async (e) => {
-  e.preventDefault();
+  const auth = async (email, contraseña) => {
+    const response = await fetch("http://localhost:3000/api/usuarios/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, contraseña }),
+    });
 
-  const email = document.getElementById("txtEmail").value.trim();
-  const contraseña = document.getElementById("txtPass").value.trim();
+    if (!response.ok) {
+      showAlert("Credenciales incorrectas");
+      throw new Error("Login incorrecto");
+    }
 
-  if (!email || !contraseña) {
-    alert("Completa email y contraseña");
-    return;
-  }
+    const data = await response.json();
+    return data.usuario;
+  };
 
-  try {
-    const usuario = await auth(email, contraseña);
+  document.getElementById("btnLogin").addEventListener("click", async (e) => {
+    e.preventDefault();
 
-    addSession(usuario); 
+    const email = document.getElementById("txtEmail").value.trim();
+    const contraseña = document.getElementById("txtPass").value.trim();
 
-    window.location.href = "/pages/index.html";
+    if (!email || !contraseña) {
+      showAlert("Completa email y contraseña");
+      return;
+    }
 
-  } catch (error) {
-    alert("Usuario o contraseña incorrectos");
-  }
+    try {
+      const usuario = await auth(email, contraseña);
+      addSession(usuario);
+      window.location.href = "/pages/index.html";
+
+    } catch (error) {
+      showAlert("Usuario o contraseña incorrectos");
+    }
+  });
+
 });
