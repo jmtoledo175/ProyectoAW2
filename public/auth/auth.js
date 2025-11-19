@@ -1,3 +1,5 @@
+import { addSession } from "../utils/sessionStorage.controller.js";
+
 const auth = async (email, contraseña) => {
   const response = await fetch("http://localhost:3000/api/usuarios/login", {
     method: "POST",
@@ -10,12 +12,11 @@ const auth = async (email, contraseña) => {
   }
 
   const data = await response.json();
-  return data;
+  return data.usuario;
 };
 
-
 document.getElementById("btnLogin").addEventListener("click", async (e) => {
-  e.preventDefault();  
+  e.preventDefault();
 
   const email = document.getElementById("txtEmail").value.trim();
   const contraseña = document.getElementById("txtPass").value.trim();
@@ -26,11 +27,12 @@ document.getElementById("btnLogin").addEventListener("click", async (e) => {
   }
 
   try {
-    const result = await auth(email, contraseña);
+    const usuario = await auth(email, contraseña);
 
-    sessionStorage.setItem("usuario", JSON.stringify(result.usuario));
+    addSession(usuario); 
 
     window.location.href = "/pages/index.html";
+
   } catch (error) {
     alert("Usuario o contraseña incorrectos");
   }
