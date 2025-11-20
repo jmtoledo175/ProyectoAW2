@@ -64,5 +64,34 @@
         "precio": 3000
       }
     ]
+  },
+  {
+    "id": 5,
+    "usuarioId": 1,
+    "productos": [
+      {
+        "id_producto": 1,
+        "cantidad": 2,
+        "precio": 1500
+      }
+    ],
+    "fecha": "2025-11-20T02:09:59.432Z"
+  },
+  {
+    "id": 6,
+    "usuarioId": 1,
+    "productos": [
+      {
+        "id_producto": 3,
+        "cantidad": 2,
+        "precio": 3000
+      },
+      {
+        "id_producto": 2,
+        "cantidad": 1,
+        "precio": 12000
+      }
+    ],
+    "fecha": "2025-11-20T02:46:19.754Z"
   }
 ]

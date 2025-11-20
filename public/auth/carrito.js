@@ -34,11 +34,9 @@ const renderCarrito = () => {
   txtTotal.textContent = total;
 };
 
-
 btnComprar.addEventListener("click", async () => {
   const carrito = getCart();
   const usuario = getSession();
-
 
   if (!usuario) {
     sessionStorage.setItem("next", "/pages/carrito.html");
@@ -46,22 +44,34 @@ btnComprar.addEventListener("click", async () => {
     return;
   }
 
+  const token = sessionStorage.getItem("token");
 
   const body = {
     id_usuario: usuario.id,
     productos: carrito.map((p) => ({
       id_producto: p.id,
       cantidad: p.cantidad,
-      precio: p.precio
-    }))
+      precio: p.precio,
+    })),
   };
 
   try {
     const response = await fetch("http://localhost:3000/api/ventas", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
+      headers: {
+        "Content-Type": "application/json",
+     
+        Authorization: `Bearer ${token}`,
+
+      },
+      body: JSON.stringify(body),
     });
+
+    if (response.status === 401) {
+      alert("Tu sesión expiró, volvé a iniciar sesión");
+      window.location.href = "/pages/login.html";
+      return;
+    }
 
     if (!response.ok) {
       alert("Error al procesar la compra");
@@ -73,12 +83,10 @@ btnComprar.addEventListener("click", async () => {
     saveCart([]);
 
     window.location.href = "/pages/home.html";
-
   } catch (error) {
     console.error(error);
     alert("Error al realizar la compra");
   }
 });
-
 
 renderCarrito();

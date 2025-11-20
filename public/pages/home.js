@@ -1,11 +1,14 @@
-import { getSession, clearSession } from "../utils/sessionStorage.controller.js";
+import {
+  getSession,
+  clearSession,
+} from "../utils/sessionStorage.controller.js";
 
 const user = getSession();
 const txt = document.getElementById("txtSaludo");
 const btnLogout = document.getElementById("btnLogout");
 
 if (user) {
-  txt.textContent = `Hola ${user.nombre} ${user.apellido}`;
+  txt.textContent = `Hola ${user.nombre}`;
 } else {
   txt.textContent = "No hay sesión activa";
 }

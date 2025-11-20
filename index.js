@@ -2,6 +2,8 @@ import express from "express";
 import productosRouter from "./routes/productos.routes.js";
 import usuariosRouter from "./routes/usuarios.routes.js";
 import ventasRouter from "./routes/ventas.routes.js";
+import "dotenv/config";
+
 
 const app = express();
 app.use(express.json());

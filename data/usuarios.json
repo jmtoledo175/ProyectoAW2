@@ -2,33 +2,7 @@
   {
     "id": 1,
     "nombre": "Julieta",
-    "apellido": "Toledo",
-    "email": "juli.toledo@ejemplo.com",
-    "contraseña": "1234",
-    "activo": true
-  },
-  {
-    "id": 2,
-    "nombre": "Juan",
-    "apellido": "Perez",
-    "email": "juanp@ejemplo.com",
-    "contraseña": "juan2025",
-    "activo": true
-  },
-  {
-    "id": 3,
-    "nombre": "Ana",
-    "apellido": "García",
-    "email": "ana.g@ejemplo.com",
-    "contraseña": "ana_pass",
-    "activo": false
-  },
-  {
-      "id": 4,
-  "nombre": "Sofi",
-  "apellido": "Fernandez",
-  "email": "sofi.f@ejemplo.com",
-  "contraseña": "sofi123",
-  "activo": true
+    "email": "julieta@test.com",
+    "contraseña": "$2b$10$U0O4rIfWA8.pblU.fuw2rejBEdSV4B5C/uBt30EkSN41qM6J298Ky"
   }
 ]

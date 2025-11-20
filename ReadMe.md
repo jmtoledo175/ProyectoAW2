@@ -1,115 +1,283 @@
-Proyecto AW2 – Etapa 3 (Front + Back)
+Descripción General del Proyecto
 
-Este proyecto implementa un monorepo con backend en Node.js + Express y frontend estático con HTML, TailwindCSS y JavaScript.
-El objetivo es integrar ambos módulos para mostrar productos, filtrarlos, gestionarlos en un carrito y generar una orden de compra.
+Este proyecto es un sistema de tienda online (front + backend) desarrollado para la materia Aplicaciones Web II.
+Incluye:
 
-## Cómo ejecutar el proyecto
+Frontend con HTML, CSS (Tailwind), JavaScript.
 
-Clonar el repositorio
+Backend armado desde cero con Node.js + Express.
 
-Instalar dependencias:
+Persistencia de datos usando archivos JSON.
 
+CRUD para usuarios, productos y ventas.
+
+Carrito de compras funcional.
+
+Sistema de login con:
+
+Encriptación de contraseñas (bcrypt)
+
+Tokens JWT
+
+Middleware de autenticación
+
+Restricción de rutas protegidas (solo usuarios logueados pueden comprar).
+
+Este README documenta todo el proyecto desde la instalación hasta las funcionalidades implementadas.
+
+// Estructura del Proyecto
+ProyectoAW2/
+│
+├── data/
+│   ├── usuarios.json
+│   ├── productos.json
+│   └── ventas.json
+│
+├── public/
+│   ├── pages/
+│   │   ├── home.html
+│   │   ├── productos.html
+│   │   ├── carrito.html
+│   │   └── login.html
+│   ├── js/
+│   ├── css/
+│   └── assets/
+│
+├── routes/
+│   ├── usuarios.routes.js
+│   ├── productos.routes.js
+│   └── ventas.routes.js
+│
+├── utils/
+│   ├── manejarArchivos.js
+│   ├── helpers.js
+│   ├── sessionStorage.controller.js
+│   └── authMiddleware.js
+│
+├── server.js
+├── package.json
+└── README.md
+
+// Instalación y Ejecución
+1. Instalar dependencias
 npm install
 
-
-Iniciar el servidor:
-
-npm start
+2. Iniciar el servidor
+npm run dev
 
 
-Abrir en el navegador:
-
+El proyecto se levanta en:
 http://localhost:3000
 
-## API – Rutas disponibles
-### Productos (/api/productos)
-Método	Ruta	Descripción
-GET	/api/productos	Obtener todos los productos
-GET	/api/productos/:id	Obtener un producto por ID
-POST	/api/productos	Crear un nuevo producto
-PUT	/api/productos/:id	Actualizar producto
-DELETE	/api/productos/:id	Eliminar producto
-### Usuarios (/api/usuarios)
-Método	Ruta	Descripción
-GET	/api/usuarios	Obtener todos los usuarios
-GET	/api/usuarios/:id	Obtener un usuario por ID
-POST	/api/usuarios	Crear usuario
-POST	/api/usuarios/login	Login por email + contraseña
-PUT	/api/usuarios/:id	Actualizar usuario
-DELETE	/api/usuarios/:id	Eliminar usuario (si no tiene ventas)
-### Ventas (/api/ventas)
-Método	Ruta	Descripción
-GET	/api/ventas	Obtener todas las ventas
-GET	/api/ventas/:id	Obtener venta por ID
-POST	/api/ventas	Registrar una venta
-POST	/api/ventas/buscarPorUsuario	Buscar ventas por ID de usuario
-PUT	/api/ventas/:id	Actualizar venta
-DELETE	/api/ventas/:id	Eliminar venta
-## Etapa 3 – Front + Back
+// Base de Datos (JSON)
 
-El frontend se encuentra dentro de la carpeta /public y se sirve mediante express.static.
+El proyecto usa 3 archivos JSON como "base de datos":
 
-### Páginas implementadas
-✔ Home / Productos – public/index.html
+/data/usuarios.json
 
-Muestra todos los productos
+Guarda usuarios registrados.
+Las contraseñas se guardan encriptadas (bcrypt).
 
-Permite filtrar por categoría
+/data/productos.json
 
-Botón “Agregar al carrito”
+Lista de productos disponibles.
 
-Contador de carrito dinámico
+/data/ventas.json
 
-Bootstrap visual con TailwindCSS
+Historial de ventas.
 
-✔ Carrito – public/pages/carrito.html
+// Gestión de Usuarios
+// 1. Registro de usuarios
 
-Muestra productos del carrito (localStorage)
+Endpoint:
 
-Calcula total dinámico
+POST /api/usuarios
 
-Permite eliminar ítems
 
-Botón “Comprar”:
+Body:
 
-Si no hay usuario → redirige a login
+{
+  "nombre": "Julieta",
+  "email": "julieta@test.com",
+  "password": "1234"
+}
 
-Si hay usuario → registra la venta vía POST al backend
+Contraseña encriptada
 
-✔ Login – public/pages/login.html
+La contraseña se encripta con bcrypt:
 
-Login simulado con JSON del backend
+const passwordHash = await bcrypt.hash(plainPassword, 10);
 
-Guarda sesión con sessionStorage
+// 2. Login de usuarios
 
-Redirige al carrito o home del usuario
+Endpoint:
 
-✔ Home del usuario – public/pages/home.html
+POST /api/usuarios/login
 
-Pantalla de bienvenida después de iniciar sesión
 
-Botones:
+Body:
 
-Seguir comprando
+{
+  "email": "julieta@test.com",
+  "password": "1234"
+}
 
-Ir al carrito
 
-Cerrar sesión
+Si es correcto, devuelve:
 
-## Tecnologías utilizadas
+{
+  "usuario": {
+    "id": 1,
+    "nombre": "Julieta",
+    "email": "julieta@test.com"
+  },
+  "token": "JWT..."
+}
 
-Node.js + Express
+// Sistema de Autenticación (JWT)
 
-HTML5 + CSS (Tailwind)
+Cuando el usuario inicia sesión, el sistema genera un token JWT:
 
-JavaScript ESModules
+const token = jwt.sign(
+  { id: usuario.id, email: usuario.email },
+  process.env.JWT_SECRET || "clave_por_defecto",
+  { expiresIn: "1h" }
+);
 
-localStorage / sessionStorage
 
-JSON como base de datos
+El frontend guarda este token:
 
-Arquitectura monorepo
+sessionStorage.setItem("token", data.token);
 
-## Usuario prueba
-"email": "juli.toledo@ejemplo.com",
-"contraseña": "1234",
+// Middleware de Autorización
+
+El middleware verifica el token en las rutas protegidas:
+
+export const authMiddleware = (req, res, next) => {
+  const header = req.headers.authorization;
+
+  if (!header) return res.status(401).json({ message: "Token no proporcionado" });
+
+  const token = header.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "clave_por_defecto");
+    req.user = decoded;
+    next();
+  } catch {
+    return res.status(401).json({ message: "Token inválido o expirado" });
+  }
+};
+
+
+Rutas que usan middleware:
+
+router.post("/", authMiddleware, ...);
+
+// Ruta Protegida: Ventas
+
+Solo un usuario logueado puede realizar una compra.
+
+Endpoint:
+
+POST /api/ventas
+
+
+Ejemplo de body enviado desde el frontend:
+
+{
+  "productos": [
+    { "id_producto": 1, "cantidad": 2, "precio": 3000 },
+    { "id_producto": 5, "cantidad": 1, "precio": 12000 }
+  ]
+}
+
+
+El backend agrega automáticamente:
+
+ID del usuario que compra
+
+Fecha
+
+ID de la venta
+
+// Carrito de Compras (Frontend)
+
+El carrito se guarda en localStorage.
+
+Cuando se presiona Comprar, se envía:
+
+fetch("http://localhost:3000/api/ventas", {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(body)
+});
+
+
+Si el token no está → redirige al login.
+Si está bien → genera la venta y vacía el carrito.
+
+// CRUD de Productos
+Obtener productos
+GET /api/productos
+
+Buscar por ID
+GET /api/productos/:id
+
+Crear producto
+POST /api/productos
+
+Editar producto
+PUT /api/productos/:id
+
+Eliminar producto
+DELETE /api/productos/:id
+
+// CRUD de Ventas
+Listar ventas
+GET /api/ventas
+
+Crear venta (protegido con JWT)
+POST /api/ventas
+
+Buscar ventas por usuario
+POST /api/ventas/buscarPorUsuario
+
+// Funcionalidades Principales del Proyecto
+✔ Carrito de compras completo
+✔ Login y Logout
+✔ Manejo de sesión desde el front
+✔ Rutas protegidas con JWT
+✔ Encriptación de contraseñas
+✔ Validación de usuario en cada compra
+✔ CRUD completo de productos y ventas
+✔ Datos persistentes en JSON
+// Cómo Probar el Proyecto
+1. Crear usuario
+
+Via Postman o desde el front.
+
+2. Login desde el front
+
+Obtiene y guarda el token.
+
+3. Agregar productos al carrito
+
+Desde productos.html.
+
+4. Comprar
+
+El backend valida:
+
+Token
+
+Usuario correcto
+
+Carrito no vacío
+
+Si todo está OK, devuelve:
+
+Compra realizada con éxito
