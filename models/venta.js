@@ -2,16 +2,20 @@ import mongoose from "mongoose";
 
 const productoVentaSchema = new mongoose.Schema(
   {
-    id_producto: { type: Number, required: true }, // id numérico que ya usás
+    id_producto: { type: Number, required: true },
     cantidad: { type: Number, required: true },
     precio: { type: Number, required: true },
   },
-  { _id: false } // para que no genere _id por cada producto
+  { _id: false } 
 );
 
 const ventaSchema = new mongoose.Schema(
   {
-    usuarioId: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario", required: true },
+    usuarioId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Usuario",
+      required: true,
+    },
     productos: { type: [productoVentaSchema], required: true },
     fecha: { type: Date, default: Date.now },
   },
