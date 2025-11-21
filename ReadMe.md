@@ -1,47 +1,63 @@
-Descripción General del Proyecto
+Descripción General
 
-Este proyecto es un sistema de tienda online (front + backend) desarrollado para la materia Aplicaciones Web II.
-Incluye:
+Este proyecto corresponde a la materia Aplicaciones Web II y consiste en una tienda online con frontend y backend.
+En esta versión final, el sistema fue migrado completamente a MongoDB, reemplazando el almacenamiento previo basado en archivos JSON.
 
-Frontend con HTML, CSS (Tailwind), JavaScript.
+El backend implementa:
 
-Backend armado desde cero con Node.js + Express.
+API REST con Node.js + Express
 
-Persistencia de datos usando archivos JSON.
+Base de datos MongoDB utilizando Mongoose
 
-CRUD para usuarios, productos y ventas.
+CRUD de usuarios, productos y ventas
 
-Carrito de compras funcional.
-
-Sistema de login con:
+Sistema de autenticación con:
 
 Encriptación de contraseñas (bcrypt)
 
-Tokens JWT
+Generación y validación de tokens JWT
 
 Middleware de autenticación
 
-Restricción de rutas protegidas (solo usuarios logueados pueden comprar).
+Rutas protegidas (solo usuarios logueados pueden comprar)
 
-Este README documenta todo el proyecto desde la instalación hasta las funcionalidades implementadas.
+Frontend simple en HTML + Tailwind + JavaScript
 
-// Estructura del Proyecto
+Tecnologías Utilizadas
+Backend
+
+Node.js
+
+Express
+
+MongoDB
+
+Mongoose
+
+bcrypt
+
+JSON Web Tokens (JWT)
+
+dotenv
+
+Frontend
+
+HTML
+
+CSS (Tailwind)
+
+JavaScript
+
+Estructura del Proyecto
 ProyectoAW2/
 │
-├── data/
-│   ├── usuarios.json
-│   ├── productos.json
-│   └── ventas.json
+├── db/
+│   └── mongo.js
 │
-├── public/
-│   ├── pages/
-│   │   ├── home.html
-│   │   ├── productos.html
-│   │   ├── carrito.html
-│   │   └── login.html
-│   ├── js/
-│   ├── css/
-│   └── assets/
+├── models/
+│   ├── usuario.js
+│   ├── producto.js
+│   └── venta.js
 │
 ├── routes/
 │   ├── usuarios.routes.js
@@ -49,52 +65,90 @@ ProyectoAW2/
 │   └── ventas.routes.js
 │
 ├── utils/
-│   ├── manejarArchivos.js
-│   ├── helpers.js
-│   ├── sessionStorage.controller.js
-│   └── authMiddleware.js
+│   ├── authMiddleware.js
+│   ├── manejarArchivos.js  (ya no se utiliza)
+│   ├── helpers.js          (ya no se utiliza)
 │
-├── server.js
+├── public/
+│   ├── pages/
+│   ├── js/
+│   ├── css/
+│   └── assets/
+│
+├── index.js
 ├── package.json
 └── README.md
 
-// Instalación y Ejecución
+
+Nota: Los módulos helpers.js y manejarArchivos.js son parte de la primera versión del proyecto que utilizaba JSON.
+Ya no se utilizan en la migración a MongoDB, pero se mantienen en caso de necesitar referencia histórica.
+
+Instalación y Ejecución
 1. Instalar dependencias
 npm install
 
-2. Iniciar el servidor
+2. Configurar archivo .env
+
+Crear un archivo:
+
+MONGODB_URI=mongodb://127.0.0.1:27017/proyectoAW2
+JWT_SECRET=una_clave_segura
+JWT_EXPIRES_IN=1h
+PORT=3000
+
+3. Iniciar servidor
 npm run dev
 
 
-El proyecto se levanta en:
+El proyecto queda disponible en:
 http://localhost:3000
 
-// Base de Datos (JSON)
+Conexión a MongoDB
 
-El proyecto usa 3 archivos JSON como "base de datos":
+El archivo db/mongo.js gestiona la conexión mediante Mongoose:
 
-/data/usuarios.json
+await mongoose.connect(MONGODB_URI);
 
-Guarda usuarios registrados.
-Las contraseñas se guardan encriptadas (bcrypt).
 
-/data/productos.json
+Si la conexión falla, el servidor no inicia.
 
-Lista de productos disponibles.
+Modelos (Mongoose)
+Usuario
+{
+  nombre: String,
+  email: String,
+  contraseña: String  // encriptada con bcrypt
+}
 
-/data/ventas.json
+Producto
+{
+  nombre: String,
+  precio: Number,
+  stock: Number
+}
 
-Historial de ventas.
+Venta
+{
+  usuarioId: ObjectId (ref: Usuario),
+  productos: [
+    {
+      id_producto: ObjectId (ref: Producto),
+      cantidad: Number,
+      precio: Number
+    }
+  ],
+  fecha: Date
+}
 
-// Gestión de Usuarios
-// 1. Registro de usuarios
+Autenticación y Seguridad
+Registro de usuario
 
 Endpoint:
 
 POST /api/usuarios
 
 
-Body:
+Ejemplo body:
 
 {
   "nombre": "Julieta",
@@ -102,112 +156,95 @@ Body:
   "password": "1234"
 }
 
-Contraseña encriptada
 
-La contraseña se encripta con bcrypt:
+La contraseña se encripta con:
 
-const passwordHash = await bcrypt.hash(plainPassword, 10);
+bcrypt.hash(plainPassword, 10)
 
-// 2. Login de usuarios
-
-Endpoint:
-
+Login
 POST /api/usuarios/login
-
-
-Body:
-
-{
-  "email": "julieta@test.com",
-  "password": "1234"
-}
 
 
 Si es correcto, devuelve:
 
 {
   "usuario": {
-    "id": 1,
+    "id": "<ObjectId>",
     "nombre": "Julieta",
     "email": "julieta@test.com"
   },
   "token": "JWT..."
 }
 
-// Sistema de Autenticación (JWT)
 
-Cuando el usuario inicia sesión, el sistema genera un token JWT:
+El frontend lo guarda en sessionStorage.
 
-const token = jwt.sign(
-  { id: usuario.id, email: usuario.email },
-  process.env.JWT_SECRET || "clave_por_defecto",
-  { expiresIn: "1h" }
-);
+Middleware de Autorización
 
+Archivo authMiddleware.js.
 
-El frontend guarda este token:
+Valida el header:
 
-sessionStorage.setItem("token", data.token);
-
-// Middleware de Autorización
-
-El middleware verifica el token en las rutas protegidas:
-
-export const authMiddleware = (req, res, next) => {
-  const header = req.headers.authorization;
-
-  if (!header) return res.status(401).json({ message: "Token no proporcionado" });
-
-  const token = header.split(" ")[1];
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "clave_por_defecto");
-    req.user = decoded;
-    next();
-  } catch {
-    return res.status(401).json({ message: "Token inválido o expirado" });
-  }
-};
+Authorization: Bearer <token>
 
 
-Rutas que usan middleware:
+Si el token es válido:
+→ se permite continuar
+Si no:
+→ responde 401
 
-router.post("/", authMiddleware, ...);
+Rutas de la API
+Usuarios
+Método	Ruta	Descripción
+GET	/api/usuarios	Listar usuarios (sin contraseña)
+GET	/api/usuarios/:id	Buscar usuario por ID
+POST	/api/usuarios	Registrar usuario
+POST	/api/usuarios/login	Login + JWT
+PUT	/api/usuarios/:id	Actualizar usuario
+DELETE	/api/usuarios/:id	Eliminar usuario
+Productos
+Método	Ruta	Descripción
+GET	/api/productos	Listar productos
+GET	/api/productos/:id	Buscar producto
+POST	/api/productos	Crear producto
+PUT	/api/productos/:id	Actualizar
+DELETE	/api/productos/:id	Eliminar
+Ventas
+Método	Ruta	Requiere JWT	Descripción
+GET	/api/ventas	No	Listar ventas
+GET	/api/ventas/:id	No	Buscar venta
+POST	/api/ventas	Sí	Crear venta
+POST	/api/ventas/buscarPorUsuario	No	Buscar ventas por usuario
+PUT	/api/ventas/:id	No	Actualizar
+DELETE	/api/ventas/:id	No	Eliminar
+Crear una Venta (protegido)
 
-// Ruta Protegida: Ventas
-
-Solo un usuario logueado puede realizar una compra.
-
-Endpoint:
-
-POST /api/ventas
-
-
-Ejemplo de body enviado desde el frontend:
+Ejemplo de body:
 
 {
   "productos": [
-    { "id_producto": 1, "cantidad": 2, "precio": 3000 },
-    { "id_producto": 5, "cantidad": 1, "precio": 12000 }
+    {
+      "id_producto": "678c3f31f80cbb3c8c485932",
+      "cantidad": 2,
+      "precio": 3000
+    }
   ]
 }
 
 
 El backend agrega automáticamente:
 
-ID del usuario que compra
+ID del usuario (desde el token)
 
-Fecha
+fecha de compra
 
-ID de la venta
+Carrito de Compras (Frontend)
 
-// Carrito de Compras (Frontend)
+El carrito se maneja en localStorage.
 
-El carrito se guarda en localStorage.
+Al presionar “Comprar”, el frontend envía:
 
-Cuando se presiona Comprar, se envía:
-
-fetch("http://localhost:3000/api/ventas", {
+fetch("/api/ventas", {
   method: "POST",
   headers: {
     "Authorization": `Bearer ${token}`,
@@ -217,67 +254,44 @@ fetch("http://localhost:3000/api/ventas", {
 });
 
 
-Si el token no está → redirige al login.
-Si está bien → genera la venta y vacía el carrito.
+Si el token no existe → redirige al login.
 
-// CRUD de Productos
-Obtener productos
-GET /api/productos
+Características Implementadas
 
-Buscar por ID
-GET /api/productos/:id
+CRUD completo de usuarios
 
-Crear producto
-POST /api/productos
+CRUD de productos
 
-Editar producto
-PUT /api/productos/:id
+Registro y login con JWT
 
-Eliminar producto
-DELETE /api/productos/:id
+Encriptación de contraseñas
 
-// CRUD de Ventas
-Listar ventas
-GET /api/ventas
+Middleware de autorización
 
-Crear venta (protegido con JWT)
-POST /api/ventas
+Carrito de compras en frontend
 
-Buscar ventas por usuario
-POST /api/ventas/buscarPorUsuario
+Ventas asociadas al usuario logueado
 
-// Funcionalidades Principales del Proyecto
-✔ Carrito de compras completo
-✔ Login y Logout
-✔ Manejo de sesión desde el front
-✔ Rutas protegidas con JWT
-✔ Encriptación de contraseñas
-✔ Validación de usuario en cada compra
-✔ CRUD completo de productos y ventas
-✔ Datos persistentes en JSON
-// Cómo Probar el Proyecto
-1. Crear usuario
+Migración completa a MongoDB con Mongoose
 
-Via Postman o desde el front.
+Rutas protegidas
 
-2. Login desde el front
+Cómo Probar el Proyecto
 
-Obtiene y guarda el token.
+Crear usuario (front o Postman)
 
-3. Agregar productos al carrito
+Loguearse y obtener JWT
 
-Desde productos.html.
+Navegar productos
 
-4. Comprar
+Agregar al carrito
 
-El backend valida:
+Comprar (requiere token)
 
-Token
+Estado de la Migración
 
-Usuario correcto
-
-Carrito no vacío
-
-Si todo está OK, devuelve:
-
-Compra realizada con éxito
+✔ JSON eliminado
+✔ MongoDB funcionando
+✔ Modelos Mongoose implementados
+✔ Relaciones con ObjectId funcionando
+✔ Próxima etapa lista para producción

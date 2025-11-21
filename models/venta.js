@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const productoVentaSchema = new mongoose.Schema(
   {
-    id_producto: { type: Number, required: true },
+    id_producto: { type: mongoose.Schema.Types.ObjectId, ref: "Producto", required: true },
     cantidad: { type: Number, required: true },
     precio: { type: Number, required: true },
   },
