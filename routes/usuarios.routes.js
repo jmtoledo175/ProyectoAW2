@@ -1,133 +1,159 @@
 import { Router } from "express";
-import { leerArchivo, escribirArchivo } from "../utils/manejarArchivos.js";
-import { getNextId } from "../utils/helpers.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { Usuario } from "../models/Usuario.js";
 
 const router = Router();
-const rutaUsuarios = "./data/usuarios.json";
-const rutaVentas = "./data/ventas.json";
+const SALT_ROUNDS = 10;
+
 
 router.get("/", async (req, res) => {
-  const usuarios = await leerArchivo(rutaUsuarios);
-  res.json(usuarios);
+  try {
+    const usuarios = await Usuario.find().select("-contraseña");
+    res.json(usuarios);
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener usuarios" });
+  }
 });
+
 
 router.get("/:id", async (req, res) => {
-  const usuarios = await leerArchivo(rutaUsuarios);
-  const usuario = usuarios.find((u) => u.id == req.params.id);
-  usuario ? res.json(usuario) : res.status(404).json("Usuario no encontrado");
+  try {
+    const usuario = await Usuario.findById(req.params.id).select("-contraseña");
+
+    if (!usuario) {
+      return res.status(404).json("Usuario no encontrado");
+    }
+
+    res.json(usuario);
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener usuario" });
+  }
 });
 
-const SALT_ROUNDS = 10;
 
 router.post("/", async (req, res) => {
   try {
-    const usuarios = await leerArchivo(rutaUsuarios);
-
     const { nombre, email, password, contraseña } = req.body;
     const plainPassword = password || contraseña;
 
     if (!nombre || !email || !plainPassword) {
-      return res
-        .status(400)
-        .json({ message: "nombre, email y contraseña son obligatorios" });
+      return res.status(400).json({
+        message: "nombre, email y contraseña son obligatorios",
+      });
     }
 
-    const existente = usuarios.find((u) => u.email === email);
+  
+    const existente = await Usuario.findOne({ email });
     if (existente) {
       return res.status(400).json({ message: "El email ya está registrado" });
     }
 
+   
     const passwordHash = await bcrypt.hash(plainPassword, SALT_ROUNDS);
 
-    const nuevoUsuario = {
-      id: getNextId(usuarios),
+
+    const nuevoUsuario = await Usuario.create({
       nombre,
       email,
       contraseña: passwordHash,
-    };
+    });
 
-    usuarios.push(nuevoUsuario);
-    await escribirArchivo(rutaUsuarios, usuarios);
-
-    const { contraseña: _, ...usuarioSinPassword } = nuevoUsuario;
-
-    res.status(201).json(usuarioSinPassword);
+    res.status(201).json({
+      id: nuevoUsuario._id,
+      nombre: nuevoUsuario.nombre,
+      email: nuevoUsuario.email,
+    });
   } catch (error) {
-    console.error("Error al crear usuario", error);
+    console.error("Error al crear usuario:", error);
     res.status(500).json({ message: "Error al crear usuario" });
   }
 });
 
+
 router.post("/login", async (req, res) => {
   try {
     const { email, password, contraseña } = req.body;
-
     const plainPassword = password || contraseña;
 
-    console.log("📌 Password enviado:", plainPassword);
+    if (!email || !plainPassword) {
+      return res.status(400).json({
+        message: "email y contraseña son obligatorios",
+      });
+    }
 
-    const usuarios = await leerArchivo(rutaUsuarios);
-    const usuario = usuarios.find((u) => u.email === email);
+    const usuario = await Usuario.findOne({ email });
 
     if (!usuario) {
-      console.log("⚠️ Usuario no encontrado");
       return res.status(401).json({ message: "Usuario no encontrado" });
     }
 
-    console.log("📌 Hash guardado:", usuario.contraseña);
 
-    const coincide = await bcrypt.compare(plainPassword, usuario.contraseña);
-
-    console.log("📌 ¿Coincide bcrypt?:", coincide);
+    const coincide = await bcrypt.compare(
+      plainPassword,
+      usuario.contraseña
+    );
 
     if (!coincide) {
       return res.status(401).json({ message: "Contraseña incorrecta" });
     }
 
+  
     const token = jwt.sign(
-      { id: usuario.id, email: usuario.email },
+      {
+        id: usuario._id,
+        email: usuario.email,
+      },
       process.env.JWT_SECRET || "clave_por_defecto",
-      { expiresIn: "1h" }
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
     );
 
-    res.json({ usuario, token });
+    res.json({
+      usuario: {
+        id: usuario._id,
+        nombre: usuario.nombre,
+        email: usuario.email,
+      },
+      token,
+    });
   } catch (error) {
-    console.error("🔥 Error en login:", error);
+    console.error("Error en login:", error);
     res.status(500).json({ message: "Error en el login" });
   }
 });
 
 
 router.put("/:id", async (req, res) => {
-  const usuarios = await leerArchivo(rutaUsuarios);
-  const index = usuarios.findIndex((u) => u.id == req.params.id);
-  if (index !== -1) {
-    usuarios[index] = { ...usuarios[index], ...req.body };
-    await escribirArchivo(rutaUsuarios, usuarios);
-    res.json("Usuario actualizado");
-  } else {
-    res.status(404).json("Usuario no encontrado");
+  try {
+    const actualizado = await Usuario.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    ).select("-contraseña");
+
+    if (!actualizado) {
+      return res.status(404).json("Usuario no encontrado");
+    }
+
+    res.json(actualizado);
+  } catch (error) {
+    res.status(500).json({ message: "Error al actualizar usuario" });
   }
 });
 
+
 router.delete("/:id", async (req, res) => {
-  const usuarios = await leerArchivo(rutaUsuarios);
-  const ventas = await leerArchivo(rutaVentas);
+  try {
+    const eliminado = await Usuario.findByIdAndDelete(req.params.id);
 
-  const tieneVentas = ventas.some((v) => v.id_usuario == req.params.id);
-  if (tieneVentas)
-    return res
-      .status(400)
-      .json("No se puede eliminar el usuario porque tiene ventas asociadas");
+    if (!eliminado) {
+      return res.status(404).json("Usuario no encontrado");
+    }
 
-  const nuevos = usuarios.filter((u) => u.id != req.params.id);
-  if (nuevos.length === usuarios.length)
-    return res.status(404).json("Usuario no encontrado");
-
-  await escribirArchivo(rutaUsuarios, nuevos);
-  res.json("Usuario eliminado");
+    res.json("Usuario eliminado");
+  } catch (error) {
+    res.status(500).json({ message: "Error al eliminar usuario" });
+  }
 });
 
 export default router;

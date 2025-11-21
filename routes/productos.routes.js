@@ -1,54 +1,77 @@
 import { Router } from "express";
-import { leerArchivo, escribirArchivo } from "../utils/manejarArchivos.js";
-import { getNextId } from "../utils/helpers.js";
-
+import { Producto } from "../models/producto.js";
 
 const router = Router();
-const ruta = "./data/productos.json";
-
 
 router.get("/", async (req, res) => {
-const productos = await leerArchivo(ruta);
-res.json(productos);
+  try {
+    const productos = await Producto.find();
+    res.json(productos);
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener productos" });
+  }
 });
-
 
 router.get("/:id", async (req, res) => {
-const productos = await leerArchivo(ruta);
-const prod = productos.find(p => p.id == req.params.id);
-prod ? res.json(prod) : res.status(404).json("Producto no encontrado");
-});
+  try {
+    const producto = await Producto.findById(req.params.id);
 
+    if (!producto) {
+      return res.status(404).json("Producto no encontrado");
+    }
+
+    res.json(producto);
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener producto" });
+  }
+});
 
 router.post("/", async (req, res) => {
-const productos = await leerArchivo(ruta);
-const nuevo = { id: getNextId(productos), ...req.body };
-productos.push(nuevo);
-await escribirArchivo(ruta, productos);
-res.status(201).json("Producto agregado");
-});
+  try {
+    const nuevoProducto = await Producto.create(req.body);
 
+    res.status(201).json({
+      message: "Producto agregado con éxito",
+      producto: nuevoProducto
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error al crear producto" });
+  }
+});
 
 router.put("/:id", async (req, res) => {
-const productos = await leerArchivo(ruta);
-const index = productos.findIndex(p => p.id == req.params.id);
-if (index !== -1) {
-productos[index] = { ...productos[index], ...req.body };
-await escribirArchivo(ruta, productos);
-res.json("Producto actualizado");
-} else {
-res.status(404).json("Producto no encontrado");
-}
-});
+  try {
+    const actualizado = await Producto.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
 
+    if (!actualizado) {
+      return res.status(404).json("Producto no encontrado");
+    }
+
+    res.json({
+      message: "Producto actualizado",
+      producto: actualizado
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error al actualizar producto" });
+  }
+});
 
 router.delete("/:id", async (req, res) => {
-const productos = await leerArchivo(ruta);
-const nuevos = productos.filter(p => p.id != req.params.id);
-if (nuevos.length === productos.length) return res.status(404).json("No existe");
-await escribirArchivo(ruta, nuevos);
-res.json("Producto eliminado");
-});
+  try {
+    const eliminado = await Producto.findByIdAndDelete(req.params.id);
 
+    if (!eliminado) {
+      return res.status(404).json("Producto no encontrado");
+    }
+
+    res.json("Producto eliminado");
+  } catch (error) {
+    res.status(500).json({ message: "Error al eliminar producto" });
+  }
+});
 
 export default router;
